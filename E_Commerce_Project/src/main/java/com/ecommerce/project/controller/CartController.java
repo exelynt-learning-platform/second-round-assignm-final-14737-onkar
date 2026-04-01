@@ -1,12 +1,11 @@
 package com.ecommerce.project.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.ecommerce.project.entity.CartItem;
 import com.ecommerce.project.entity.User;
-import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.service.CartService;
 
 import java.util.List;
@@ -18,21 +17,14 @@ public class CartController {
     @Autowired
     private CartService service;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    // ✅ HELPER METHOD 
-    private User getLoggedInUser(Authentication auth) {
-        String email = auth.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
     // ✅ ADD ITEM
     @PostMapping
-    public CartItem add(@RequestBody CartItem item, Authentication auth) {
+    public CartItem add(@RequestBody CartItem item,
+                        @AuthenticationPrincipal User user) {
 
-        User user = getLoggedInUser(auth);
+        if (user == null) {
+            throw new RuntimeException("User not authenticated");
+        }
 
         item.setUser(user);
 
@@ -41,28 +33,28 @@ public class CartController {
 
     // ✅ GET CART
     @GetMapping
-    public List<CartItem> get(Authentication auth) {
+    public List<CartItem> get(@AuthenticationPrincipal User user) {
 
-        User user = getLoggedInUser(auth);
+        if (user == null) {
+            throw new RuntimeException("User not authenticated");
+        }
 
         return service.get(user);
     }
 
-    // ✅ DELETE ITEM 
+    // ✅ DELETE ITEM (SECURE FIX)
     @DeleteMapping("/{id}")
-    public String remove(@PathVariable Long id, Authentication auth) {
+    public String remove(@PathVariable Long id,
+                         @AuthenticationPrincipal User user) {
 
-        User user = getLoggedInUser(auth);
-
-        // ✅ Fetch cart item
-        CartItem item = service.getById(id);
-
-        // ✅ Ownership check
-        if (!item.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+        if (user == null) {
+            throw new RuntimeException("User not authenticated");
         }
 
-        service.remove(id);
+        //   fetch only if belongs to user
+        CartItem item = service.getByIdAndUser(id, user.getId());
+
+        service.remove(item.getId());
 
         return "Item Removed";
     }

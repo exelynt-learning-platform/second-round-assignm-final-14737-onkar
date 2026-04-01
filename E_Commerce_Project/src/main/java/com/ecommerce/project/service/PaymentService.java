@@ -18,12 +18,18 @@ public class PaymentService {
     @Value("${stripe.secret.key}")
     private String stripeKey;
 
+    // ✅ INIT WITH VALIDATION (FIXED)
     @PostConstruct
     public void init() {
+
+        if (stripeKey == null || stripeKey.trim().isEmpty()) {
+            throw new IllegalStateException("Stripe key not configured");
+        }
+
         Stripe.apiKey = stripeKey;
     }
 
-    // ✅ SIMPLE PAYMENT  
+    // ✅ SIMPLE PAYMENT
     public String pay(Double amount) {
 
         if (amount == null || amount <= 0) {
@@ -33,7 +39,7 @@ public class PaymentService {
         return "Payment Successful";
     }
 
-    // ✅ STRIPE PAYMENT  
+    // ✅ STRIPE PAYMENT
     public PaymentIntent createPayment(Double amount) {
 
         try {
@@ -42,7 +48,7 @@ public class PaymentService {
             }
 
             Map<String, Object> params = new HashMap<>();
-            params.put("amount", (int) (amount * 100));
+            params.put("amount", (int) (amount * 100)); // amount in paisa
             params.put("currency", "inr");
 
             return PaymentIntent.create(params);

@@ -1,10 +1,6 @@
 package com.ecommerce.project.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,27 +12,22 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ✅ Name must not be empty
     @NotBlank(message = "Product name is required")
     @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
     private String name;
 
-    // ✅ Optional but limited size
     @Size(max = 500, message = "Description too long")
     private String description;
 
-    // ✅ Price must be positive
     @Min(value = 0, message = "Price must be >= 0")
-    private double price;
+    private Double price;
 
-    // ✅ Stock must be non-negative
     @Min(value = 0, message = "Stock must be >= 0")
-    private int stock;
+    private Integer stock;
 
-    // ✅ Optional field
     private String imageUrl;
 
-    // GETTERS & SETTERS
+    // ✅ GETTERS & SETTERS
 
     public Long getId() {
         return id;
@@ -62,19 +53,19 @@ public class Product {
         this.description = description;
     }
 
-    public double getPrice() {
+    public Double getPrice() {   // ✅ FIXED
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
-    public int getStock() {
+    public Integer getStock() {  // ✅ FIXED
         return stock;
     }
 
-    public void setStock(int stock) {
+    public void setStock(Integer stock) {
         this.stock = stock;
     }
 
