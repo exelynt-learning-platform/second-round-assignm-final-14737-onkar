@@ -23,16 +23,31 @@ public class OrderController {
     private UserRepository userRepository;
 
     // PLACE ORDER
+//    @PostMapping
+//    public Order placeOrder(@RequestParam String address, Authentication auth) {
+//
+//        //String email = (String) auth.getPrincipal();
+//    	String email = auth.getName();
+//
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        return service.placeOrder(user, address);
+//    }
+ 
+    // PLACE ORDER
     @PostMapping
-    public Order placeOrder(@RequestParam String address, Authentication auth) {
+    public Order placeOrder(@RequestBody Order order, Authentication auth) {
 
-        String email = (String) auth.getPrincipal();
+        String email = auth.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return service.placeOrder(user, address);
+        return service.placeOrder(user, order.getAddress());
+        
     }
+    
 
     // GET ORDERS
     @GetMapping

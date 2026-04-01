@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class PaymentService {
 
     public String pay(Double amount) {
-        return "Payment Successful (Dummy)";
+        return "Payment Successful";
     }
 }
 
@@ -37,7 +37,7 @@ public class PaymentService {
 //    }
 //
 //    static {
-//        Stripe.apiKey = "your_secret_key"; // 🔥 Replace with your key
+//        Stripe.apiKey = "your_secret_key"; 
 //    }
 //
 //    public PaymentIntent createPayment(Double amount) throws Exception {
