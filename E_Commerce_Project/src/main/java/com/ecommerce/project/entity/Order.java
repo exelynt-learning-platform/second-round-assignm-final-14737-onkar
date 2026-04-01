@@ -24,8 +24,9 @@ public class Order {
     private User user;
 
     private double totalAmount;
-
-    private String status;
+   
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    private OrderStatus status;
 
     private String address;
 
@@ -56,11 +57,11 @@ public class Order {
 		this.totalAmount = totalAmount;
 	}
 
-	public String getStatus() {
+	public OrderStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(OrderStatus status) {
 		this.status = status;
 	}
 

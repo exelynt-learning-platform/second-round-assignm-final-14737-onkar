@@ -30,26 +30,36 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
         String email = null;
         String token = null;
 
+        // ✅ Extract token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
 
             try {
-                email = jwtUtil.extractEmail(token);
+                // ✅ Validate token BEFORE using it
+                if (token != null && jwtUtil.validateToken(token)) {
+                    email = jwtUtil.extractEmail(token);
+                }
             } catch (Exception e) {
-                // Invalid token → skip
+                // ❌ Invalid token → ignore safely
             }
         }
 
+        // ✅ Set authentication if valid
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            Collections.emptyList()
+                    );
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
+        // ✅ Continue filter chain
         filterChain.doFilter(request, response);
     }
 }

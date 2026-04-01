@@ -7,15 +7,19 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.project.entity.CartItem;
 import com.ecommerce.project.entity.Order;
 import com.ecommerce.project.entity.OrderItem;
+import com.ecommerce.project.entity.OrderStatus;
 import com.ecommerce.project.entity.Product;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ProductRepository;
 
+import jakarta.transaction.Transactional;
+
 import java.util.*;
 
 @Service
+ 
 public class OrderService {
 
     @Autowired
@@ -26,8 +30,11 @@ public class OrderService {
     
     @Autowired
     private ProductRepository productRepo;
+    
+    
 
     // PLACE ORDER FROM CART
+    @Transactional
     public Order placeOrder(User user, String address) {
 
         List<CartItem> cartItems = cartRepo.findByUserId(user.getId());
@@ -67,7 +74,7 @@ public class OrderService {
         order.setItems(orderItems);
         order.setTotalAmount(total);
         order.setAddress(address);
-        order.setStatus("CREATED");
+        order.setStatus(OrderStatus.CREATED);
 
         // ✅ CLEAR CART
         cartRepo.deleteAll(cartItems);

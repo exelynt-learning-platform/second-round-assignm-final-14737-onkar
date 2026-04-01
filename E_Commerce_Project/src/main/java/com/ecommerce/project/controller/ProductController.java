@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import com.ecommerce.project.entity.Product;
 import com.ecommerce.project.service.ProductService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -17,7 +19,7 @@ public class ProductController {
     private ProductService service;
 
     @PostMapping
-    public Product add(@RequestBody Product product) {
+    public Product add(@Valid @RequestBody Product product) {
         return service.add(product);
     }
 
