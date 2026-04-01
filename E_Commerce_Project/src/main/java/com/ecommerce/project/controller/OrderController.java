@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.ecommerce.project.dto.OrderRequest;
 import com.ecommerce.project.entity.Order;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.UserRepository;
@@ -21,23 +22,23 @@ public class OrderController {
     @Autowired
     private UserRepository userRepository;
 
-    // PLACE ORDER
+    // ✅ PLACE ORDER  
     @PostMapping
-    public Order placeOrder(@RequestBody Order order, Authentication auth) {
+    public Order placeOrder(@RequestBody OrderRequest request, Authentication auth) {
 
         String email = auth.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return service.placeOrder(user, order.getAddress());
+        return service.placeOrder(user, request.getAddress());
     }
 
-    // GET ORDERS
+    // ✅ GET ORDERS
     @GetMapping
     public List<Order> getOrders(Authentication auth) {
 
-        String email = auth.getName(); // ✅ FIXED
+        String email = auth.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

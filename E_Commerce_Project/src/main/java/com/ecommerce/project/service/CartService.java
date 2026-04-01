@@ -20,12 +20,17 @@ public class CartService {
     @Autowired
     private ProductRepository productRepository;
 
-    // ADD TO CART
+    // ✅ ADD TO CART (FINAL FIXED)
     public CartItem add(CartItem item) {
 
-        // ✅ Null safety
-        if (item.getProduct() == null || item.getProduct().getId() == null) {
-            throw new RuntimeException("Product is required");
+        // ✅ FULL NULL SAFETY (FINAL FIX)
+        if (item == null || 
+            item.getUser() == null || 
+            item.getUser().getId() == null ||
+            item.getProduct() == null || 
+            item.getProduct().getId() == null) {
+
+            throw new RuntimeException("User and Product are required");
         }
 
         // ✅ Fetch product from DB
@@ -39,19 +44,36 @@ public class CartService {
             throw new RuntimeException("Not enough stock");
         }
 
+        // ✅ Check existing cart item
+        List<CartItem> existingItems = repo.findByUserId(item.getUser().getId());
+
+        for (CartItem existing : existingItems) {
+            if (existing.getProduct().getId().equals(product.getId())) {
+
+                existing.setQuantity(existing.getQuantity() + item.getQuantity());
+                return repo.save(existing);
+            }
+        }
+
         // ✅ Set correct product
         item.setProduct(product);
 
         return repo.save(item);
     }
 
-    // GET USER CART
+    // ✅ GET USER CART
     public List<CartItem> get(User user) {
         return repo.findByUserId(user.getId());
     }
 
-    // REMOVE ITEM
+    // ✅ REMOVE ITEM
     public void remove(Long id) {
         repo.deleteById(id);
+    }
+
+    // ✅ GET ITEM BY ID
+    public CartItem getById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
     }
 }

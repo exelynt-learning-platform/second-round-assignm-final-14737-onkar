@@ -21,16 +21,19 @@ public class CartController {
     @Autowired
     private UserRepository userRepository;
 
+    // ✅ HELPER METHOD 
+    private User getLoggedInUser(Authentication auth) {
+        String email = auth.getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     // ✅ ADD ITEM
     @PostMapping
     public CartItem add(@RequestBody CartItem item, Authentication auth) {
 
-        String email = auth.getName();
+        User user = getLoggedInUser(auth);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // ✅ Set logged-in user
         item.setUser(user);
 
         return service.add(item);
@@ -40,24 +43,25 @@ public class CartController {
     @GetMapping
     public List<CartItem> get(Authentication auth) {
 
-        String email = auth.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = getLoggedInUser(auth);
 
         return service.get(user);
     }
 
-    // ✅ DELETE ITEM (SAFE)
+    // ✅ DELETE ITEM 
     @DeleteMapping("/{id}")
     public String remove(@PathVariable Long id, Authentication auth) {
 
-        String email = auth.getName();
+        User user = getLoggedInUser(auth);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // ✅ Fetch cart item
+        CartItem item = service.getById(id);
 
-        // Basic validation (no flow break)
+        // ✅ Ownership check
+        if (!item.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
         service.remove(id);
 
         return "Item Removed";

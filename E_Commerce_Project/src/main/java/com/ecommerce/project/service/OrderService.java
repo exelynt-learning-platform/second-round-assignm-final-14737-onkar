@@ -1,5 +1,4 @@
 package com.ecommerce.project.service;
- 
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,6 @@ import jakarta.transaction.Transactional;
 import java.util.*;
 
 @Service
- 
 public class OrderService {
 
     @Autowired
@@ -27,13 +25,11 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepo;
-    
+
     @Autowired
     private ProductRepository productRepo;
-    
-    
 
-    // PLACE ORDER FROM CART
+    // ✅ PLACE ORDER FROM CART (FINAL SAFE)
     @Transactional
     public Order placeOrder(User user, String address) {
 
@@ -48,16 +44,27 @@ public class OrderService {
 
         for (CartItem cart : cartItems) {
 
-            Product product = cart.getProduct();
+            // ✅ FULL NULL SAFETY
+            if (cart == null ||
+                cart.getProduct() == null ||
+                cart.getProduct().getId() == null) {
+                throw new RuntimeException("Invalid cart item");
+            }
 
+            // ✅ Fetch latest product
+            Product product = productRepo.findById(cart.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            // ✅ Stock validation
             if (product.getStock() < cart.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for " + product.getName());
             }
 
-            // ✅ reduce stock
+            // ✅ Reduce stock
             product.setStock(product.getStock() - cart.getQuantity());
             productRepo.save(product);
 
+            // ✅ Create order item
             OrderItem item = new OrderItem();
             item.setProductName(product.getName());
             item.setQuantity(cart.getQuantity());
@@ -83,13 +90,9 @@ public class OrderService {
         return orderRepo.save(order);
     }
 
-    // GET USER ORDERS
+    // ✅ GET USER ORDERS
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<Order> getOrders(User user) {
         return orderRepo.findByUserId(user.getId());
     }
-    
-    //to placing the order
-	     
-
-
 }
