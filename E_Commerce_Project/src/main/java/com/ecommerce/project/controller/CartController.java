@@ -25,12 +25,13 @@ public class CartController {
     @PostMapping
     public CartItem add(@RequestBody CartItem item, Authentication auth) {
 
-        String email = (String) auth.getPrincipal();
+        //String email = (String) auth.getPrincipal();
+    	String email = auth.getName();   
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    	User user = userRepository.findByEmail(email)
+    	        .orElseThrow(() -> new RuntimeException("User not found"));
 
-        item.setUser(user);
+    	item.setUser(user); 
 
         return service.add(item);
     }

@@ -2,39 +2,58 @@ package com.ecommerce.project.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
 import java.util.Base64;
+import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // 🔐 FIXED SECRET (must be >= 256 bits)
-    private static final String SECRET_STRING = "mysecretkeymysecretkeymysecretkey123456"; // 32+ chars
+    // Secret key from application.properties
+    @Value("${jwt.secret}")
+    private String secret;
 
-    private final Key SECRET_KEY = Keys.hmacShaKeyFor(
-            Base64.getEncoder().encode(SECRET_STRING.getBytes())
-    );
+    //  Generate signing key
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(
+                Base64.getEncoder().encode(secret.getBytes())
+        );
+    }
 
-    // 🔐 Generate Token
+    //  Generate JWT Token
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
+                .setIssuer("ecommerce-app") // optional but good
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    // 🔍 Extract Email
+    //  Extract email from token
     public String extractEmail(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    //  Validate token (VERY IMPORTANT for security)
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 }

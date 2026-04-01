@@ -27,7 +27,10 @@ public class ProductService {
 
     // UPDATE PRODUCT
     public Product update(Long id, Product product) {
-        product.setId(id);
+    	if (!repo.existsById(id)) {
+    	    throw new RuntimeException("Product not found");
+    	}
+    	product.setId(id);
         return repo.save(product);
     }
 

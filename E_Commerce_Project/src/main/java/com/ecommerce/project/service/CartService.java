@@ -21,17 +21,29 @@ public class CartService {
     private ProductRepository productRepository;
 
     // ADD TO CART
+//    public CartItem add(CartItem item) {
+//
+//        Long productId = item.getProduct().getId();
+//
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new RuntimeException("Product not found"));
+//
+//        item.setProduct(product);
+//
+//        return repo.save(item);
+//    }
+    
+ // ADD TO CART
     public CartItem add(CartItem item) {
 
-        Long productId = item.getProduct().getId();
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        item.setProduct(product);
+    	if (item.getProduct().getStock() < item.getQuantity()) {
+    	    throw new RuntimeException("Not enough stock");
+    	}
 
         return repo.save(item);
     }
+    
+    
 
     // GET USER CART
     public List<CartItem> get(User user) {

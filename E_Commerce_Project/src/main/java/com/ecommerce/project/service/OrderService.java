@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.project.entity.CartItem;
 import com.ecommerce.project.entity.Order;
 import com.ecommerce.project.entity.OrderItem;
+import com.ecommerce.project.entity.Product;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.OrderRepository;
+import com.ecommerce.project.repository.ProductRepository;
 
 import java.util.*;
 
@@ -21,6 +23,9 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepo;
+    
+    @Autowired
+    private ProductRepository productRepo;
 
     // PLACE ORDER FROM CART
     public Order placeOrder(User user, String address) {
@@ -36,25 +41,38 @@ public class OrderService {
 
         for (CartItem cart : cartItems) {
 
-            OrderItem item = new OrderItem();
-            item.setProductName(cart.getProduct().getName());
-            item.setQuantity(cart.getQuantity());
-            item.setPrice(cart.getProduct().getPrice());
+            Product product = cart.getProduct();
 
-            total += cart.getQuantity() * cart.getProduct().getPrice();
+            if (product.getStock() < cart.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for " + product.getName());
+            }
+
+            // ✅ reduce stock
+            product.setStock(product.getStock() - cart.getQuantity());
+            productRepo.save(product);
+
+            OrderItem item = new OrderItem();
+            item.setProductName(product.getName());
+            item.setQuantity(cart.getQuantity());
+            item.setPrice(product.getPrice());
+
+            total += cart.getQuantity() * product.getPrice();
 
             orderItems.add(item);
         }
 
+        // ✅ CREATE ORDER
         Order order = new Order();
         order.setUser(user);
         order.setItems(orderItems);
         order.setTotalAmount(total);
-        order.setStatus("CREATED");
         order.setAddress(address);
+        order.setStatus("CREATED");
 
+        // ✅ CLEAR CART
         cartRepo.deleteAll(cartItems);
 
+        // ✅ SAVE & RETURN
         return orderRepo.save(order);
     }
 
@@ -62,4 +80,9 @@ public class OrderService {
     public List<Order> getOrders(User user) {
         return orderRepo.findByUserId(user.getId());
     }
+    
+    //to placing the order
+	     
+
+
 }

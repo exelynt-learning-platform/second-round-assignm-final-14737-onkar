@@ -1,5 +1,4 @@
 package com.ecommerce.project.service;
- 
 
 import java.util.Optional;
 
@@ -24,23 +23,53 @@ public class AuthService {
     @Autowired
     private PasswordEncoder encoder;
 
-    // REGISTER
-    public void register(User user) {
+    //  REGISTER
+    public String register(User user) {
+
+        //  Email validation
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
+            throw new RuntimeException("Invalid email format");
+        }
+
+        //  Password validation
+        if (user.getPassword() == null || user.getPassword().length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters");
+        }
+
+        //  Duplicate user check
+        Optional<User> existing = repo.findByEmail(user.getEmail());
+        if (existing.isPresent()) {
+            throw new RuntimeException("User already exists");
+        }
+
+        //  Encrypt password
         user.setPassword(encoder.encode(user.getPassword()));
+
+        //  Default role
         user.setRole("ROLE_USER");
+
         repo.save(user);
+
+        return "User registered successfully";
     }
 
-    // LOGIN
+    //  LOGIN
     public String login(AuthRequest req) {
+
+        //  Validate input
+        if (req.getEmail() == null || req.getPassword() == null) {
+            throw new RuntimeException("Email and password are required");
+        }
 
         User user = repo.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (encoder.matches(req.getPassword(), user.getPassword())) {
-            return jwtUtil.generateToken(req.getEmail());
+        //  Password check
+        if (!encoder.matches(req.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
         }
 
-        throw new RuntimeException("Invalid Email or Password");
+        //  Generate JWT
+        return jwtUtil.generateToken(user.getEmail());
     }
-    }
+}
