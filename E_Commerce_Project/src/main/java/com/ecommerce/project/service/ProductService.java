@@ -16,6 +16,11 @@ public class ProductService {
 
     // ✅ ADD PRODUCT
     public Product add(Product product) {
+
+        if (product == null) {
+            throw new RuntimeException("Product cannot be null");
+        }
+
         return repo.save(product);
     }
 
@@ -24,20 +29,27 @@ public class ProductService {
         return repo.findAll();
     }
 
-    // ✅ UPDATE PRODUCT (FIXED - PARTIAL UPDATE SAFE)
+    // ✅ UPDATE PRODUCT (NULL-SAFE PARTIAL UPDATE)
     public Product update(Long id, Product product) {
+
+        if (id == null) {
+            throw new RuntimeException("Product ID is required");
+        }
+
+        if (product == null) {
+            throw new RuntimeException("Product data is required");
+        }
 
         // ✅ Fetch existing product
         Product existing = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // ✅ Update only provided fields
+        // ✅ Update only provided fields (NULL SAFE)
 
         if (product.getName() != null) {
             existing.setName(product.getName());
         }
-
-        if (product.getPrice() != 0) {
+        if (product.getPrice() != 0.0) {
             existing.setPrice(product.getPrice());
         }
 
@@ -45,7 +57,7 @@ public class ProductService {
             existing.setStock(product.getStock());
         }
 
-        if (product.getDescription() != null) {   // if you have description field
+        if (product.getDescription() != null) {
             existing.setDescription(product.getDescription());
         }
 
@@ -54,6 +66,11 @@ public class ProductService {
 
     // ✅ DELETE PRODUCT
     public void delete(Long id) {
+
+        if (id == null) {
+            throw new RuntimeException("Product ID is required");
+        }
+
         repo.deleteById(id);
     }
 }

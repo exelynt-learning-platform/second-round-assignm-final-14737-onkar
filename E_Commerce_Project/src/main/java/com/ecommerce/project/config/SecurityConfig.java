@@ -23,11 +23,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // ✅ ENABLE CORS (FIX)
+            // ✅ Enable CORS
             .cors(cors -> {})
 
+            // ✅ Disable CSRF (for REST APIs)
             .csrf(csrf -> csrf.disable())
 
+            // ✅ Authorization rules
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
 
@@ -39,16 +41,19 @@ public class SecurityConfig {
 
                 .anyRequest().authenticated()
             )
+
+            // ✅ Stateless session (JWT)
             .sessionManagement(sess -> sess
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
+        // ✅ Add JWT filter
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ✅ CORS CONFIGURATION BEAN (IMPORTANT)
+    // ✅ FIXED CORS CONFIGURATION
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
 
@@ -57,14 +62,27 @@ public class SecurityConfig {
 
         config.setAllowCredentials(true);
 
-        // ✅ Allow all origins (safe for development)
-        config.addAllowedOrigin("*");
+        // ✅ FIX: specify trusted origins (NO "*")
+        config.setAllowedOrigins(java.util.Arrays.asList(
+                "http://localhost:3000",   // React frontend
+                "http://localhost:8080"    // optional
+        ));
 
-        // ✅ Allow all headers
-        config.addAllowedHeader("*");
+        // ✅ Allowed headers
+        config.setAllowedHeaders(java.util.Arrays.asList(
+                "Authorization",
+                "Content-Type"
+        ));
 
-        // ✅ Allow all methods (GET, POST, PUT, DELETE)
-        config.addAllowedMethod("*");
+        // ✅ Allowed methods
+        config.setAllowedMethods(java.util.Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
+        // ✅ Expose headers (important for JWT)
+        config.setExposedHeaders(java.util.Arrays.asList(
+                "Authorization"
+        ));
 
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
                 new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
@@ -74,11 +92,13 @@ public class SecurityConfig {
         return source;
     }
 
+    // ✅ Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // ✅ Password Encoder
     @Bean
     public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
         return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();

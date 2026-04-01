@@ -23,37 +23,35 @@ public class AuthService {
     @Autowired
     private PasswordEncoder encoder;
 
-    // ✅ REGISTER
-    public String register(User user) {
+    // ✅ REGISTER (VALIDATION REMOVED - handled by @Valid)
+    public User register(User user) {
 
-        // ✅ Duplicate user check
+        if (user == null) {
+            throw new RuntimeException("User data is required");
+        }
+
         Optional<User> existing = repo.findByEmail(user.getEmail());
         if (existing.isPresent()) {
             throw new RuntimeException("User already exists");
         }
 
-        // ✅ Password validation (keep simple, no break)
-        if (user.getPassword() == null || user.getPassword().length() < 6) {
-            throw new RuntimeException("Password must be at least 6 characters");
-        }
-
-        // ✅ Encrypt password
+        // Encrypt password
         user.setPassword(encoder.encode(user.getPassword()));
 
-        // ✅ Default role
+        // Default role
         user.setRole("ROLE_USER");
 
-        repo.save(user);
-
-        return "User registered successfully";
+        return repo.save(user);
     }
 
     // ✅ LOGIN
     public String login(AuthRequest req) {
 
-        if (req.getEmail() == null || req.getPassword() == null) {
-            throw new RuntimeException("Email and password are required");
+        if (req == null) {
+            throw new RuntimeException("Request cannot be null");
         }
+
+        
 
         User user = repo.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

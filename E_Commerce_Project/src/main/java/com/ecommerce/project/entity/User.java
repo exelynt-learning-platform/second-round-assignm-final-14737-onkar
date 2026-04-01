@@ -1,12 +1,8 @@
 package com.ecommerce.project.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,15 +19,16 @@ public class User {
     @NotBlank(message = "Name is required")
     private String name;
 
-    // ✅ Email validation (MAIN FIX)
+    // ✅ Email validation
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
     @Column(unique = true)
     private String email;
 
-    // ✅ Password validation
+    // ✅ Password validation + SECURITY FIX
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // 🔥 IMPORTANT FIX
     private String password;
 
     // ✅ Role validation
@@ -64,10 +61,12 @@ public class User {
         this.email = email;
     }
 
+    // 🔐 Password will NOT be returned in API response
     public String getPassword() {
         return password;
     }
 
+    // ✅ Can still be set from request
     public void setPassword(String password) {
         this.password = password;
     }

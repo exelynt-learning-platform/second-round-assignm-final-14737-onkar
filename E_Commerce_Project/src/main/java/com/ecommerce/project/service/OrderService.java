@@ -2,6 +2,7 @@ package com.ecommerce.project.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ecommerce.project.entity.CartItem;
 import com.ecommerce.project.entity.Order;
@@ -12,8 +13,6 @@ import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ProductRepository;
-
-import jakarta.transaction.Transactional;
 
 import java.util.*;
 
@@ -29,13 +28,18 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepo;
 
-    // ✅ PLACE ORDER FROM CART (FINAL SAFE)
-    @Transactional
+    // ✅ PLACE ORDER FROM CART (TRANSACTION SAFE)
+    @Transactional(rollbackFor = Exception.class)
     public Order placeOrder(User user, String address) {
+
+        // ✅ User validation
+        if (user == null || user.getId() == null) {
+            throw new RuntimeException("Valid user required");
+        }
 
         List<CartItem> cartItems = cartRepo.findByUserId(user.getId());
 
-        if (cartItems.isEmpty()) {
+        if (cartItems == null || cartItems.isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
 
@@ -44,7 +48,7 @@ public class OrderService {
 
         for (CartItem cart : cartItems) {
 
-            // ✅ FULL NULL SAFETY
+            // ✅ Full null safety
             if (cart == null ||
                 cart.getProduct() == null ||
                 cart.getProduct().getId() == null) {
@@ -60,7 +64,7 @@ public class OrderService {
                 throw new RuntimeException("Insufficient stock for " + product.getName());
             }
 
-            // ✅ Reduce stock
+            // ✅ Reduce stock (WILL ROLLBACK IF FAILURE HAPPENS LATER)
             product.setStock(product.getStock() - cart.getQuantity());
             productRepo.save(product);
 
@@ -75,7 +79,7 @@ public class OrderService {
             orderItems.add(item);
         }
 
-        // ✅ CREATE ORDER
+        // ✅ Create order
         Order order = new Order();
         order.setUser(user);
         order.setItems(orderItems);
@@ -83,16 +87,21 @@ public class OrderService {
         order.setAddress(address);
         order.setStatus(OrderStatus.CREATED);
 
-        // ✅ CLEAR CART
+        // ✅ Clear cart
         cartRepo.deleteAll(cartItems);
 
-        // ✅ SAVE & RETURN
+        // ✅ Save order (if this fails → everything rolls back)
         return orderRepo.save(order);
     }
 
     // ✅ GET USER ORDERS
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<Order> getOrders(User user) {
+
+        if (user == null || user.getId() == null) {
+            throw new RuntimeException("Valid user required");
+        }
+
         return orderRepo.findByUserId(user.getId());
     }
 }
