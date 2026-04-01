@@ -19,9 +19,9 @@ public class AuthController {
 
     // REGISTER
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
+    public org.springframework.http.ResponseEntity<String> register(@RequestBody User user) {
         service.register(user);
-        return "User Registered Successfully";
+        return org.springframework.http.ResponseEntity.ok("User Registered Successfully");
     }
 
     // LOGIN

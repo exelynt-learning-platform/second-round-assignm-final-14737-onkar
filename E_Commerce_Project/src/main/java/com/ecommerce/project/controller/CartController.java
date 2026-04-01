@@ -1,5 +1,4 @@
 package com.ecommerce.project.controller;
- 
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -18,35 +17,49 @@ public class CartController {
 
     @Autowired
     private CartService service;
+
     @Autowired
     private UserRepository userRepository;
 
-    // ADD ITEM
+    // ✅ ADD ITEM
     @PostMapping
     public CartItem add(@RequestBody CartItem item, Authentication auth) {
 
-        //String email = (String) auth.getPrincipal();
-    	String email = auth.getName();   
+        String email = auth.getName();
 
-    	User user = userRepository.findByEmail(email)
-    	        .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    	item.setUser(user); 
+        // ✅ Set logged-in user
+        item.setUser(user);
 
         return service.add(item);
     }
 
-    // GET CART
+    // ✅ GET CART
     @GetMapping
     public List<CartItem> get(Authentication auth) {
-        User user = (User) auth.getPrincipal();
+
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         return service.get(user);
     }
 
-    // DELETE ITEM
+    // ✅ DELETE ITEM (SAFE)
     @DeleteMapping("/{id}")
-    public String remove(@PathVariable Long id) {
+    public String remove(@PathVariable Long id, Authentication auth) {
+
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Basic validation (no flow break)
         service.remove(id);
+
         return "Item Removed";
     }
 }

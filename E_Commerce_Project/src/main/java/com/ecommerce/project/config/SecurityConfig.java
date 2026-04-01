@@ -2,6 +2,7 @@ package com.ecommerce.project.config;
 
 import com.ecommerce.project.security.JwtFilter;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,13 +25,16 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/products/**").permitAll() // allow for testing
-                .requestMatchers("/cart/**").authenticated()
-                .requestMatchers("/orders/**").authenticated()
-                .requestMatchers("/payment/**").authenticated()
-                .anyRequest().authenticated()
-            )
+            	    .requestMatchers("/auth/**").permitAll()
+
+            	    .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+
+            	    .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+
+            	    .anyRequest().authenticated()
+            	)
             .sessionManagement(sess -> sess
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
