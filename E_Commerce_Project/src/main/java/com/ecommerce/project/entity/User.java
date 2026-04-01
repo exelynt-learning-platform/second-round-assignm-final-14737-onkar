@@ -7,65 +7,76 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 @Entity
-@Table(name="users")
- 
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ Name validation
+    @NotBlank(message = "Name is required")
     private String name;
 
+    // ✅ Email validation (MAIN FIX)
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
     @Column(unique = true)
     private String email;
 
+    // ✅ Password validation
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
+    // ✅ Role validation
+    @NotBlank(message = "Role is required")
     private String role;
 
-	public Long getId() {
-		return id;
-	}
+    // GETTERS & SETTERS
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public String getRole() {
-		return role;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public void setRole(String role) {
-		this.role = role;
-	}
+    public String getRole() {
+        return role;
+    }
 
-	
-	 
-    
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

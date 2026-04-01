@@ -1,12 +1,11 @@
 package com.ecommerce.project.controller;
- 
- 
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.ecommerce.project.dto.AuthRequest;
 import com.ecommerce.project.dto.AuthResponse;
+import com.ecommerce.project.dto.RegisterResponse;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.service.AuthService;
 
@@ -17,14 +16,14 @@ public class AuthController {
     @Autowired
     private AuthService service;
 
-    // REGISTER
+    //  REGISTER 
     @PostMapping("/register")
-    public org.springframework.http.ResponseEntity<String> register(@RequestBody User user) {
+    public RegisterResponse register(@RequestBody User user) {
         service.register(user);
-        return org.springframework.http.ResponseEntity.ok("User Registered Successfully");
+        return new RegisterResponse("User Registered Successfully");
     }
 
-    // LOGIN
+    //  LOGIN
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest req) {
         String token = service.login(req);
