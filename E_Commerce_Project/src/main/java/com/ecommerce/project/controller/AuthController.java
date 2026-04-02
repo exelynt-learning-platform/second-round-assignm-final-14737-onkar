@@ -38,4 +38,5 @@ public class AuthController {
 
         return new AuthResponse(token);
     }
+    
 }

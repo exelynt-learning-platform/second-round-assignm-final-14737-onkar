@@ -1,12 +1,17 @@
 package com.ecommerce.project.config;
 
 import com.ecommerce.project.security.JwtFilter;
+
+import java.util.Arrays;
+
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,7 +31,8 @@ public class SecurityConfig {
             // ✅ Enable CORS
             .cors(cors -> {})
 
-            // ✅ Disable CSRF (for REST APIs)
+            // ⚠ CSRF disabled for stateless JWT API
+            // Safe because we are not using cookies for auth; JWT protects endpoints
             .csrf(csrf -> csrf.disable())
 
             // ✅ Authorization rules
@@ -53,7 +59,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ FIXED CORS CONFIGURATION
+    // ✅ CORS configuration
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
 
@@ -62,25 +68,21 @@ public class SecurityConfig {
 
         config.setAllowCredentials(true);
 
-        // ✅ FIX: specify trusted origins (NO "*")
-        config.setAllowedOrigins(java.util.Arrays.asList(
-                "http://localhost:3000",   // React frontend
-                "http://localhost:8080"    // optional
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000", // React frontend
+            "http://localhost:8080"  // Optional, for testing
         ));
 
-        // ✅ Allowed headers
-        config.setAllowedHeaders(java.util.Arrays.asList(
+        config.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type"
         ));
 
-        // ✅ Allowed methods
-        config.setAllowedMethods(java.util.Arrays.asList(
+        config.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
 
-        // ✅ Expose headers (important for JWT)
-        config.setExposedHeaders(java.util.Arrays.asList(
+        config.setExposedHeaders(Arrays.asList(
                 "Authorization"
         ));
 
@@ -100,7 +102,7 @@ public class SecurityConfig {
 
     // ✅ Password Encoder
     @Bean
-    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

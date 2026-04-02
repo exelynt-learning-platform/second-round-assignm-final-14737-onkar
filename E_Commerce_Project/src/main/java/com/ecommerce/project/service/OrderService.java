@@ -10,6 +10,7 @@ import com.ecommerce.project.entity.OrderItem;
 import com.ecommerce.project.entity.OrderStatus;
 import com.ecommerce.project.entity.Product;
 import com.ecommerce.project.entity.User;
+import com.ecommerce.project.exception.OrderException;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.OrderRepository;
 import com.ecommerce.project.repository.ProductRepository;
@@ -34,13 +35,13 @@ public class OrderService {
 
         // ✅ User validation
         if (user == null || user.getId() == null) {
-            throw new RuntimeException("Valid user required");
+            throw new OrderException("Valid user required");
         }
 
         List<CartItem> cartItems = cartRepo.findByUserId(user.getId());
 
         if (cartItems == null || cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new OrderException("Cart is empty");
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
@@ -49,34 +50,38 @@ public class OrderService {
         for (CartItem cart : cartItems) {
 
             if (cart == null) {
-                throw new RuntimeException("Cart item is null");
+                throw new OrderException("Cart item is null");
             }
 
             if (cart.getProduct() == null) {
-                throw new RuntimeException("Product reference missing in cart");
+                throw new OrderException("Product reference missing in cart");
             }
 
             if (cart.getProduct().getId() == null) {
-                throw new RuntimeException("Product ID missing in cart");
+                throw new OrderException("Product ID missing in cart");
             }
 
-            // Fetch latest product
+            // ✅ Fetch latest product
             Product product = productRepo.findById(cart.getProduct().getId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new OrderException("Product not found"));
 
+            // ✅ Stock validation
             if (product.getStock() < cart.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for " + product.getName());
+                throw new OrderException("Insufficient stock for " + product.getName());
             }
 
+            // ✅ Reduce stock
             product.setStock(product.getStock() - cart.getQuantity());
             productRepo.save(product);
 
+            // ✅ Create order item
             OrderItem item = new OrderItem();
             item.setProductName(product.getName());
             item.setQuantity(cart.getQuantity());
             item.setPrice(product.getPrice());
 
             total += cart.getQuantity() * product.getPrice();
+
             orderItems.add(item);
         }
 
@@ -91,7 +96,7 @@ public class OrderService {
         // ✅ Clear cart
         cartRepo.deleteAll(cartItems);
 
-        // ✅ Save order (if this fails → everything rolls back)
+        // ✅ Save order
         return orderRepo.save(order);
     }
 
@@ -100,7 +105,7 @@ public class OrderService {
     public List<Order> getOrders(User user) {
 
         if (user == null || user.getId() == null) {
-            throw new RuntimeException("Valid user required");
+            throw new OrderException("Valid user required");
         }
 
         return orderRepo.findByUserId(user.getId());

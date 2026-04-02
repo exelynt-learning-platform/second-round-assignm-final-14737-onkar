@@ -32,15 +32,12 @@ public class CartController {
         return service.get(user);
     }
 
-    // ✅ DELETE ITEM
+    // ✅ DELETE ITEM (CLEAN)
     @DeleteMapping("/{id}")
     public String remove(@PathVariable Long id,
                          @AuthenticationPrincipal User user) {
 
-        // Ensure item belongs to user (security check stays)
-        CartItem item = service.getByIdAndUser(id, user.getId());
-
-        service.remove(item.getId());
+        service.removeByUser(id, user.getId());
 
         return "Item Removed";
     }
