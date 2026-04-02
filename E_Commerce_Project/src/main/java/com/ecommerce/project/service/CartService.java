@@ -53,7 +53,9 @@ public class CartService {
 
         for (CartItem existing : existingItems) {
 
-            if (existing.getProduct() != null &&
+            // ✅ Added null-safe check to prevent NPE
+            if (existing != null &&
+                existing.getProduct() != null &&
                 existing.getProduct().getId() != null &&
                 existing.getProduct().getId().equals(product.getId())) {
 
@@ -107,5 +109,18 @@ public class CartService {
 
         return repo.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new CartException("Cart item not found"));
+    }
+
+    // ✅ REMOVE ITEM BY USER
+    public void removeByUser(Long id, Long userId) {
+
+        if (id == null || userId == null) {
+            throw new CartException("Invalid cart item or user");
+        }
+
+        CartItem item = repo.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new CartException("Cart item not found"));
+
+        repo.delete(item);
     }
 }
