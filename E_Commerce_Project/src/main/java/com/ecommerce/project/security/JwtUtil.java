@@ -13,9 +13,9 @@ import java.util.Date;
 public class JwtUtil {
 
     // Secret key from application.properties
-    @Value("${jwt.secret}")
-    private String secret;
-
+	@Value("${jwt.secret}")
+	private String secret;
+	
     //  Generate signing key
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(

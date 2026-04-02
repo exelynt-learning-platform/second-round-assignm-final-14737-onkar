@@ -48,34 +48,35 @@ public class OrderService {
 
         for (CartItem cart : cartItems) {
 
-            // ✅ Full null safety
-            if (cart == null ||
-                cart.getProduct() == null ||
-                cart.getProduct().getId() == null) {
-                throw new RuntimeException("Invalid cart item");
+            if (cart == null) {
+                throw new RuntimeException("Cart item is null");
             }
 
-            // ✅ Fetch latest product
+            if (cart.getProduct() == null) {
+                throw new RuntimeException("Product reference missing in cart");
+            }
+
+            if (cart.getProduct().getId() == null) {
+                throw new RuntimeException("Product ID missing in cart");
+            }
+
+            // Fetch latest product
             Product product = productRepo.findById(cart.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            // ✅ Stock validation
             if (product.getStock() < cart.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for " + product.getName());
             }
 
-            // ✅ Reduce stock (WILL ROLLBACK IF FAILURE HAPPENS LATER)
             product.setStock(product.getStock() - cart.getQuantity());
             productRepo.save(product);
 
-            // ✅ Create order item
             OrderItem item = new OrderItem();
             item.setProductName(product.getName());
             item.setQuantity(cart.getQuantity());
             item.setPrice(product.getPrice());
 
             total += cart.getQuantity() * product.getPrice();
-
             orderItems.add(item);
         }
 

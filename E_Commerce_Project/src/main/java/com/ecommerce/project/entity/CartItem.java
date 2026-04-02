@@ -1,58 +1,57 @@
 package com.ecommerce.project.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
-
 public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ FIX: Explicit foreign key column
     @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // ✅ FIX: Explicit foreign key column
     @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     private int quantity;
 
-	public Long getId() {
-		return id;
-	}
+    // ✅ GETTERS & SETTERS
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public Product getProduct() {
-		return product;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public void setProduct(Product product) {
-		this.product = product;
-	}
+    public Product getProduct() {
+        return product;
+    }
 
-	public int getQuantity() {
-		return quantity;
-	}
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
-	}
-    
-    
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 }

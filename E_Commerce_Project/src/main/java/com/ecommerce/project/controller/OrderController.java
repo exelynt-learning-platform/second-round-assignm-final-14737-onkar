@@ -1,13 +1,12 @@
 package com.ecommerce.project.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.ecommerce.project.dto.OrderRequest;
 import com.ecommerce.project.entity.Order;
 import com.ecommerce.project.entity.User;
-import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.service.OrderService;
 
 import java.util.List;
@@ -19,29 +18,17 @@ public class OrderController {
     @Autowired
     private OrderService service;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    // ✅ PLACE ORDER  
+    // ✅ PLACE ORDER
     @PostMapping
-    public Order placeOrder(@RequestBody OrderRequest request, Authentication auth) {
-
-        String email = auth.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public Order placeOrder(@RequestBody OrderRequest request,
+                            @AuthenticationPrincipal User user) {
 
         return service.placeOrder(user, request.getAddress());
     }
 
     // ✅ GET ORDERS
     @GetMapping
-    public List<Order> getOrders(Authentication auth) {
-
-        String email = auth.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public List<Order> getOrders(@AuthenticationPrincipal User user) {
 
         return service.getOrders(user);
     }

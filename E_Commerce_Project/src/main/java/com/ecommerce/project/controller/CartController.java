@@ -22,36 +22,22 @@ public class CartController {
     public CartItem add(@RequestBody CartItem item,
                         @AuthenticationPrincipal User user) {
 
-        if (user == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-
         item.setUser(user);
-
         return service.add(item);
     }
 
     // ✅ GET CART
     @GetMapping
     public List<CartItem> get(@AuthenticationPrincipal User user) {
-
-        if (user == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-
         return service.get(user);
     }
 
-    // ✅ DELETE ITEM (SECURE FIX)
+    // ✅ DELETE ITEM
     @DeleteMapping("/{id}")
     public String remove(@PathVariable Long id,
                          @AuthenticationPrincipal User user) {
 
-        if (user == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-
-        //   fetch only if belongs to user
+        // Ensure item belongs to user (security check stays)
         CartItem item = service.getByIdAndUser(id, user.getId());
 
         service.remove(item.getId());
