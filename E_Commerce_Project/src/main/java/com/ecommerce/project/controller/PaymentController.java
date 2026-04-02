@@ -13,8 +13,8 @@ public class PaymentController {
     @Autowired
     private PaymentService service;
 
-    @PostMapping("/{orderId}")
-    public String pay(@PathVariable Long orderId) {
-        return service.pay(orderId);
+    @PostMapping
+    public String pay(@RequestParam Double amount) throws Exception {
+        return service.pay(amount);
     }
 }

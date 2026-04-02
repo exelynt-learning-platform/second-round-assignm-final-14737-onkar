@@ -10,9 +10,6 @@ import com.ecommerce.project.dto.AuthRequest;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.JwtUtil;
-import com.ecommerce.project.exception.UserAlreadyExistsException;
-import com.ecommerce.project.exception.UserNotFoundException;
-import com.ecommerce.project.exception.InvalidCredentialsException;
 
 @Service
 public class AuthService {
@@ -27,38 +24,42 @@ public class AuthService {
     private PasswordEncoder encoder;
 
     // ✅ REGISTER
-    public User register(User user) {
+    public String register(User user) {
 
-        if (user == null) {
-            throw new IllegalArgumentException("User data is required");
-        }
-
+        // ✅ Duplicate user check
         Optional<User> existing = repo.findByEmail(user.getEmail());
         if (existing.isPresent()) {
-            throw new UserAlreadyExistsException("User already exists with this email");
+            throw new RuntimeException("User already exists");
         }
 
-        // Encrypt password
+        // ✅ Password validation (keep simple, no break)
+        if (user.getPassword() == null || user.getPassword().length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters");
+        }
+
+        // ✅ Encrypt password
         user.setPassword(encoder.encode(user.getPassword()));
 
-        // Default role
+        // ✅ Default role
         user.setRole("ROLE_USER");
 
-        return repo.save(user);
+        repo.save(user);
+
+        return "User registered successfully";
     }
 
     // ✅ LOGIN
     public String login(AuthRequest req) {
 
-        if (req == null) {
-            throw new IllegalArgumentException("Request cannot be null");
+        if (req.getEmail() == null || req.getPassword() == null) {
+            throw new RuntimeException("Email and password are required");
         }
 
         User user = repo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid email or password");
+            throw new RuntimeException("Invalid email or password");
         }
 
         return jwtUtil.generateToken(user.getEmail());

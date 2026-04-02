@@ -9,8 +9,6 @@ import com.ecommerce.project.dto.RegisterResponse;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.service.AuthService;
 
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -18,25 +16,17 @@ public class AuthController {
     @Autowired
     private AuthService service;
 
-    // ✅ REGISTER
+    //  REGISTER 
     @PostMapping("/register")
-    public RegisterResponse register(@Valid @RequestBody User user) {
-
-        User savedUser = service.register(user);
-
-        return new RegisterResponse(
-                "User Registered Successfully",
-                savedUser.getEmail()
-        );
+    public RegisterResponse register(@RequestBody User user) {
+        service.register(user);
+        return new RegisterResponse("User Registered Successfully");
     }
 
-    // ✅ LOGIN
+    //  LOGIN
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody AuthRequest req) {
-
+    public AuthResponse login(@RequestBody AuthRequest req) {
         String token = service.login(req);
-
         return new AuthResponse(token);
     }
-    
 }
