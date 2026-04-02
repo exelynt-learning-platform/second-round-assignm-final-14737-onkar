@@ -3,10 +3,14 @@ package com.ecommerce.project.service;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.ecommerce.project.entity.Order;
+import com.ecommerce.project.entity.OrderStatus;
 import com.ecommerce.project.exception.PaymentException;
+import com.ecommerce.project.repository.OrderRepository;
 
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
@@ -18,45 +22,52 @@ public class PaymentService {
     @Value("${stripe.secret.key}")
     private String stripeKey;
 
-    // ✅ INIT WITH VALIDATION (FIXED)
+    @Autowired
+    private OrderRepository orderRepository;
+
     @PostConstruct
     public void init() {
-
         if (stripeKey == null || stripeKey.trim().isEmpty()) {
             throw new IllegalStateException("Stripe key not configured");
         }
-
         Stripe.apiKey = stripeKey;
     }
 
-    // ✅ SIMPLE PAYMENT
-    public String pay(Double amount) {
+    // ✅ PAYMENT LINKED WITH ORDER
+    public String pay(Long orderId) {
 
-        if (amount == null || amount <= 0) {
-            throw new PaymentException("Invalid payment amount");
+        if (orderId == null) {
+            throw new PaymentException("Order ID is required");
         }
 
-        return "Payment Successful";
-    }
+        // ✅ Fetch order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new PaymentException("Order not found"));
 
-    // ✅ STRIPE PAYMENT
-    public PaymentIntent createPayment(Double amount) {
+        if (order.getTotalAmount() == null || order.getTotalAmount() <= 0) {
+            throw new PaymentException("Invalid order amount");
+        }
 
         try {
-            if (amount == null || amount <= 0) {
-                throw new PaymentException("Invalid payment amount");
-            }
-
+            // ✅ Stripe payment
             Map<String, Object> params = new HashMap<>();
-            params.put("amount", (int) (amount * 100)); // amount in paisa
+            params.put("amount", (int) (order.getTotalAmount() * 100));
             params.put("currency", "inr");
 
-            return PaymentIntent.create(params);
+            PaymentIntent intent = PaymentIntent.create(params);
+
+            // ✅ Update order status
+            order.setStatus(OrderStatus.PAID);
+            orderRepository.save(order);
+
+            return intent.getId();
 
         } catch (StripeException e) {
+
+            order.setStatus(OrderStatus.FAILED);
+            orderRepository.save(order);
+
             throw new PaymentException("Payment failed: " + e.getMessage());
-        } catch (Exception e) {
-            throw new PaymentException("Unexpected payment error");
         }
     }
 }

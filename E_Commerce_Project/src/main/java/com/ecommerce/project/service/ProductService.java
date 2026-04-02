@@ -49,14 +49,13 @@ public class ProductService {
         if (product.getName() != null) {
             existing.setName(product.getName());
         }
-        if (product.getPrice() != 0.0) {
+        if (product.getPrice() != null && product.getPrice() != 0.0) {
             existing.setPrice(product.getPrice());
         }
 
-        if (product.getStock() != 0) {
+        if (product.getStock() != null && product.getStock() != 0) {
             existing.setStock(product.getStock());
         }
-
         if (product.getDescription() != null) {
             existing.setDescription(product.getDescription());
         }

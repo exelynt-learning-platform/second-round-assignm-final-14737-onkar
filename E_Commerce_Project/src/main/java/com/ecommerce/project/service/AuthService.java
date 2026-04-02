@@ -10,6 +10,9 @@ import com.ecommerce.project.dto.AuthRequest;
 import com.ecommerce.project.entity.User;
 import com.ecommerce.project.repository.UserRepository;
 import com.ecommerce.project.security.JwtUtil;
+import com.ecommerce.project.exception.UserAlreadyExistsException;
+import com.ecommerce.project.exception.UserNotFoundException;
+import com.ecommerce.project.exception.InvalidCredentialsException;
 
 @Service
 public class AuthService {
@@ -23,16 +26,16 @@ public class AuthService {
     @Autowired
     private PasswordEncoder encoder;
 
-    // ✅ REGISTER (VALIDATION REMOVED - handled by @Valid)
+    // ✅ REGISTER
     public User register(User user) {
 
         if (user == null) {
-            throw new RuntimeException("User data is required");
+            throw new IllegalArgumentException("User data is required");
         }
 
         Optional<User> existing = repo.findByEmail(user.getEmail());
         if (existing.isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("User already exists with this email");
         }
 
         // Encrypt password
@@ -48,16 +51,14 @@ public class AuthService {
     public String login(AuthRequest req) {
 
         if (req == null) {
-            throw new RuntimeException("Request cannot be null");
+            throw new IllegalArgumentException("Request cannot be null");
         }
 
-        
-
         User user = repo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!encoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         return jwtUtil.generateToken(user.getEmail());

@@ -2,84 +2,80 @@ package com.ecommerce.project.entity;
 
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name="orders")
- 
+@Table(name = "orders")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ FIX: Explicit join column
     @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private double totalAmount;
-   
-    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    private Double totalAmount;
+
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     private String address;
 
+    // ✅ FIX: Better mapping for items
     @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "order_id") // foreign key in OrderItem table
     private List<OrderItem> items;
 
-	public Long getId() {
-		return id;
-	}
+    // ✅ GETTERS & SETTERS
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public double getTotalAmount() {
-		return totalAmount;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public void setTotalAmount(double totalAmount) {
-		this.totalAmount = totalAmount;
-	}
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
 
-	public OrderStatus getStatus() {
-		return status;
-	}
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
 
-	public void setStatus(OrderStatus status) {
-		this.status = status;
-	}
+    public OrderStatus getStatus() {
+        return status;
+    }
 
-	public String getAddress() {
-		return address;
-	}
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    public String getAddress() {
+        return address;
+    }
 
-	public List<OrderItem> getItems() {
-		return items;
-	}
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-	public void setItems(List<OrderItem> items) {
-		this.items = items;
-	}
-    
-    
+    public List<OrderItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<OrderItem> items) {
+        this.items = items;
+    }
 }
