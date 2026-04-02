@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.project.entity.CartItem;
 import com.ecommerce.project.entity.Product;
 import com.ecommerce.project.entity.User;
-import com.ecommerce.project.exception.CartException;
 import com.ecommerce.project.repository.CartRepository;
 import com.ecommerce.project.repository.ProductRepository;
 
@@ -21,49 +20,42 @@ public class CartService {
     @Autowired
     private ProductRepository productRepository;
 
-    // ✅ ADD TO CART
+    // ✅ ADD TO CART (FINAL FIXED)
     public CartItem add(CartItem item) {
 
-        if (item == null) {
-            throw new CartException("Cart item cannot be null");
+        // ✅ FULL NULL SAFETY (FINAL FIX)
+        if (item == null || 
+            item.getUser() == null || 
+            item.getUser().getId() == null ||
+            item.getProduct() == null || 
+            item.getProduct().getId() == null) {
+
+            throw new RuntimeException("User and Product are required");
         }
 
-        if (item.getUser() == null || item.getUser().getId() == null) {
-            throw new CartException("Valid user is required");
-        }
-
-        if (item.getProduct() == null || item.getProduct().getId() == null) {
-            throw new CartException("Valid product is required");
-        }
-
-        if (item.getQuantity() <= 0) {
-            throw new CartException("Quantity must be greater than 0");
-        }
-
+        // ✅ Fetch product from DB
         Long productId = item.getProduct().getId();
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new CartException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        // ✅ Stock validation
         if (product.getStock() < item.getQuantity()) {
-            throw new CartException("Not enough stock");
+            throw new RuntimeException("Not enough stock");
         }
 
+        // ✅ Check existing cart item
         List<CartItem> existingItems = repo.findByUserId(item.getUser().getId());
 
         for (CartItem existing : existingItems) {
-
-            // ✅ Added null-safe check to prevent NPE
-            if (existing != null &&
-                existing.getProduct() != null &&
-                existing.getProduct().getId() != null &&
-                existing.getProduct().getId().equals(product.getId())) {
+            if (existing.getProduct().getId().equals(product.getId())) {
 
                 existing.setQuantity(existing.getQuantity() + item.getQuantity());
                 return repo.save(existing);
             }
         }
 
+        // ✅ Set correct product
         item.setProduct(product);
 
         return repo.save(item);
@@ -71,56 +63,17 @@ public class CartService {
 
     // ✅ GET USER CART
     public List<CartItem> get(User user) {
-
-        if (user == null || user.getId() == null) {
-            throw new CartException("Valid user is required");
-        }
-
         return repo.findByUserId(user.getId());
     }
 
     // ✅ REMOVE ITEM
     public void remove(Long id) {
-
-        if (id == null) {
-            throw new CartException("Cart item ID is required");
-        }
-
         repo.deleteById(id);
     }
 
     // ✅ GET ITEM BY ID
     public CartItem getById(Long id) {
-
-        if (id == null) {
-            throw new CartException("Cart item ID is required");
-        }
-
         return repo.findById(id)
-                .orElseThrow(() -> new CartException("Cart item not found"));
-    }
-
-    // ✅ GET ITEM BY ID AND USER
-    public CartItem getByIdAndUser(Long id, Long userId) {
-
-        if (id == null || userId == null) {
-            throw new CartException("Invalid cart item or user");
-        }
-
-        return repo.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new CartException("Cart item not found"));
-    }
-
-    // ✅ REMOVE ITEM BY USER
-    public void removeByUser(Long id, Long userId) {
-
-        if (id == null || userId == null) {
-            throw new CartException("Invalid cart item or user");
-        }
-
-        CartItem item = repo.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new CartException("Cart item not found"));
-
-        repo.delete(item);
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
     }
 }

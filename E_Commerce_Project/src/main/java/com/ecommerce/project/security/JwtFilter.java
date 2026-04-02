@@ -40,7 +40,7 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
                     email = jwtUtil.extractEmail(token);
                 }
             } catch (Exception e) {
-                logger.error("JWT validation failed", e);
+                // ❌ Invalid token → ignore safely
             }
         }
 
